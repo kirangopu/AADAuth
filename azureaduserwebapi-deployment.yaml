@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azureaduserwebapi-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: azureaduserwebapi
+  template:
+    metadata:
+      labels:
+        app: azureaduserwebapi
+    spec:
+      containers:
+      - name: azureaduserwebapi
+        image: pocaadcontainerregistry.azurecr.io/azureaduserwebapi:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azureaduserwebapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: azureaduserwebapi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
