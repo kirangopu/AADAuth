@@ -1,10 +1,12 @@
-﻿using System.Reflection;
-using AzureAdUserwebAPI.Model;
+﻿using AzureAdUserwebAPI.Model;
 using AzureAdUserwebAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 
 namespace AzureAdUserwebAPI.Controller
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
@@ -16,6 +18,7 @@ namespace AzureAdUserwebAPI.Controller
             _graphUserService = graphUserService;
         }
 
+        [AllowAnonymous]
         [HttpPost("signup")]
         public async Task<IActionResult> Signup([FromBody] UserSignupModel model)
         {
@@ -24,7 +27,14 @@ namespace AzureAdUserwebAPI.Controller
             //return Ok($"Received id:");
         }
 
-        
+        [AllowAnonymous]
+        [HttpPost("inviteexternalusers")]
+        public async Task<IActionResult> InviteExternalUserAsync([FromBody] UserSignupModel model)
+        {
+            var success = await _graphUserService.InviteExternalUserAsync(model);
+            return Ok(new { isInserted = success });
+        }
+
 
         [HttpPost("deluser")]
         public async Task<IActionResult> DelUser([FromBody] UpdatePasswordModel model)

@@ -292,6 +292,47 @@ namespace AzureAdUserwebAPI.Services
                 return false;
             }
         }
+
+        public async Task<bool> InviteExternalUserAsync(UserSignupModel model)
+        {
+            try
+            {
+                var invitation = new Invitation
+                {
+                    InvitedUserEmailAddress = model.UserPrincipalName,
+                    InviteRedirectUrl = "https://your-client-app-url", // frontend app
+                    InvitedUserDisplayName = model.DisplayName,
+                    SendInvitationMessage = true
+                };
+
+                var invitedUser = await _graphClient.Invitations.PostAsync(invitation);
+
+                // Optionally assign to group
+                if (!string.IsNullOrEmpty(model.GroupName))
+                {
+                    var groups = await _graphClient.Groups.GetAsync();
+                    var group = groups?.Value?.FirstOrDefault(g => g.DisplayName == model.GroupName);
+
+                    if (group != null && invitedUser?.InvitedUser != null)
+                    {
+                        var reference = new ReferenceCreate
+                        {
+                            OdataId = $"https://graph.microsoft.com/v1.0/directoryObjects/{invitedUser.InvitedUser.Id}"
+                        };
+
+                        await _graphClient.Groups[group.Id].Members.Ref.PostAsync(reference);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // log or throw
+                return false;
+            }
+        }
+
         public async Task<bool> DeleteUserAsync(string userPrincipalName)
         {
             try
